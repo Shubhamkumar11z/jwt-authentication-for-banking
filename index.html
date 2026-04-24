@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Banking API - JWT Auth</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>🏦 Banking API (JWT Authentication)</h1>
+
+    <!-- REGISTER -->
+    <div class="card">
+        <h2>Register</h2>
+        <input type="text" id="regUser" placeholder="Username">
+        <input type="password" id="regPass" placeholder="Password">
+        <button onclick="register()">Register</button>
+        <p id="regStatus"></p>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="card">
+        <h2>Login</h2>
+        <input type="text" id="logUser" placeholder="Username">
+        <input type="password" id="logPass" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p id="logStatus"></p>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div class="card">
+        <h2>Account Details (Protected)</h2>
+        <button onclick="getAccount()">View Account</button>
+        <p id="accountData"></p>
+    </div>
+
+    <!-- TOKEN INFO -->
+    <div class="card">
+        <h2>JWT Token</h2>
+        <textarea id="tokenBox" readonly></textarea>
+    </div>
+</div>
+
+<script>
+let token = "";
+
+// REGISTER
+async function register(){
+    const username = document.getElementById("regUser").value;
+    const password = document.getElementById("regPass").value;
+
+    const res = await fetch("http://localhost:3000/register", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({username, password})
+    });
+
+    const data = await res.json();
+    document.getElementById("regStatus").innerText = data.message;
+}
+
+// LOGIN
+async function login(){
+    const username = document.getElementById("logUser").value;
+    const password = document.getElementById("logPass").value;
+
+    const res = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({username, password})
+    });
+
+    const data = await res.json();
+
+    if(res.status === 200){
+        token = data.token;
+        document.getElementById("tokenBox").value = token;
+        document.getElementById("logStatus").innerText = "Login Success ✅";
+    } else {
+        document.getElementById("logStatus").innerText = "Invalid Credentials ❌";
+    }
+}
+
+// PROTECTED ROUTE
+async function getAccount(){
+    const res = await fetch("http://localhost:3000/account", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    const data = await res.json();
+
+    if(res.status === 200){
+        document.getElementById("accountData").innerText =
+            "Balance: ₹" + data.balance;
+    } else {
+        document.getElementById("accountData").innerText =
+            "Access Denied / Token Expired ❌";
+    }
+}
+</script>
+
+</body>
+</html>
